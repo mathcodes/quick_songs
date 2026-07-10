@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>Setlist</title>
+<style>
+  :root{
+    --bg:#0d0f0d;
+    --panel:#171a17;
+    --panel-hi:#20241f;
+    --line:#2a2f29;
+    --text:#f2f1ea;
+    --sub:#9aa39a;
+    --amber:#e0a640;
+    --amber-dim:#7a5c26;
+  }
+
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+  html,body{
+    margin:0;
+    padding:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    min-height:100%;
+  }
+
+  header{
+    padding:18px 16px 10px;
+    text-align:center;
+    border-bottom:1px solid var(--line);
+  }
+
+  header h1{
+    margin:0;
+    font-size:1.15rem;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    font-weight:700;
+    color:var(--amber);
+  }
+
+  header p{
+    margin:4px 0 0;
+    font-size:.75rem;
+    color:var(--sub);
+  }
+
+  main{
+    padding:12px;
+    max-width:1100px;
+    margin:0 auto;
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:10px;
+  }
+
+  @media (orientation:landscape){
+    .grid{ grid-template-columns:repeat(4, 1fr); }
+  }
+
+  /* fallback for landscape tablets/desktop that don't fire orientation media query */
+  @media (min-width:640px) and (min-aspect-ratio:1/1){
+    .grid{ grid-template-columns:repeat(4, 1fr); }
+  }
+
+  a.card{
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    gap:6px;
+    min-height:92px;
+    padding:12px 8px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    text-decoration:none;
+    color:var(--text);
+    transition:background .12s ease, border-color .12s ease, transform .08s ease;
+  }
+
+  a.card:active{
+    transform:scale(.97);
+    background:var(--panel-hi);
+    border-color:var(--amber-dim);
+  }
+
+  @media (hover:hover){
+    a.card:hover{
+      background:var(--panel-hi);
+      border-color:var(--amber-dim);
+    }
+  }
+
+  a.card:focus-visible{
+    outline:2px solid var(--amber);
+    outline-offset:2px;
+  }
+
+  .title{
+    font-size:.95rem;
+    font-weight:700;
+    line-height:1.2;
+  }
+
+  .artist{
+    font-size:.72rem;
+    font-weight:400;
+    color:var(--sub);
+    line-height:1.2;
+  }
+
+  footer{
+    text-align:center;
+    padding:20px 12px 30px;
+    color:var(--sub);
+    font-size:.68rem;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Setlist</h1>
+  <p>32 songs &middot; tap for chords</p>
+</header>
+
+<main>
+  <div class="grid" id="grid"></div>
+</main>
+
+<footer>Links open Ultimate Guitar</footer>
+
+<script>
+  const songs = [
+    { title: "Ain't No Sunshine", artist: "Bill Withers", url: "https://tabs.ultimate-guitar.com/tab/bill-withers/aint-no-sunshine-chords-468744" },
+    { title: "All Of Me", artist: "John Legend", url: "https://tabs.ultimate-guitar.com/tab/john-legend/all-of-me-official-2123125" },
+    { title: "Bad Moon Rising", artist: "Creedence Clearwater Revival", url: "https://tabs.ultimate-guitar.com/tab/creedence-clearwater-revival/bad-moon-rising-chords-15892" },
+    { title: "Better Man", artist: "Pearl Jam", url: "https://tabs.ultimate-guitar.com/tab/pearl-jam/better-man-official-2503071" },
+    { title: "Brown Eyed Girl", artist: "Van Morrison", url: "https://tabs.ultimate-guitar.com/tab/van-morrison/brown-eyed-girl-official-chords-1960765" },
+    { title: "Come As You Are (Acoustic)", artist: "Nirvana", url: "https://tabs.ultimate-guitar.com/tab/nirvana/come-as-you-are-chords-3733793" },
+    { title: "Doin' Time", artist: "Sublime", url: "https://tabs.ultimate-guitar.com/tab/sublime/doin-time-official-chords-3782447" },
+    { title: "Drift Away", artist: "Dobie Gray", url: "https://tabs.ultimate-guitar.com/tab/dobie-gray/drift-away-chords-461533" },
+    { title: "Folsom Prison Blues", artist: "Johnny Cash", url: "https://tabs.ultimate-guitar.com/tab/johnny-cash/folsom-prison-blues-chords-202632" },
+    { title: "Friends In Low Places", artist: "Garth Brooks", url: "https://tabs.ultimate-guitar.com/tab/garth-brooks/friends-in-low-places-official-chords-2423303" },
+    { title: "Have You Ever Seen The Rain", artist: "Creedence Clearwater Revival", url: "https://tabs.ultimate-guitar.com/tab/creedence-clearwater-revival/have-you-ever-seen-the-rain-chords-56479" },
+    { title: "Hotel California", artist: "Eagles", url: "https://tabs.ultimate-guitar.com/tab/eagles/hotel-california-chords-46190" },
+    { title: "House Of The Rising Sun", artist: "The Animals", url: "https://tabs.ultimate-guitar.com/tab/the-animals/house-of-the-rising-sun-chords-18688" },
+    { title: "I And Love And You", artist: "The Avett Brothers", url: "https://tabs.ultimate-guitar.com/tab/the-avett-brothers/i-and-love-and-you-chords-847742" },
+    { title: "I Still Haven't Found What I'm Looking For", artist: "U2", url: "https://tabs.ultimate-guitar.com/tab/u2/i-still-havent-found-what-im-looking-for-chords-114133" },
+    { title: "I Will Wait", artist: "Mumford & Sons", url: "https://tabs.ultimate-guitar.com/tab/mumford-sons/i-will-wait-chords-1175334" },
+    { title: "I'm Yours", artist: "Jason Mraz", url: "https://tabs.ultimate-guitar.com/tab/jason-mraz/im-yours-chords-1451454" },
+    { title: "Isn't She Lovely", artist: "Stevie Wonder", url: "https://tabs.ultimate-guitar.com/tab/stevie-wonder/isnt-she-lovely-chords-213358" },
+    { title: "Landslide", artist: "Fleetwood Mac", url: "https://tabs.ultimate-guitar.com/tab/fleetwood-mac/landslide-tabs-749995" },
+    { title: "Mr. Jones", artist: "Counting Crows", url: "https://tabs.ultimate-guitar.com/tab/counting-crows/mr-jones-chords-16066" },
+    { title: "Paint It Black", artist: "The Rolling Stones", url: "https://tabs.ultimate-guitar.com/tab/the-rolling-stones/paint-it-black-chords-4034" },
+    { title: "Pride And Joy", artist: "Stevie Ray Vaughan", url: "https://tabs.ultimate-guitar.com/tab/stevie-ray-vaughan-double-trouble/pride-and-joy-chords-1245692" },
+    { title: "Ramblin' Man", artist: "The Allman Brothers Band", url: "https://tabs.ultimate-guitar.com/tab/the-allman-brothers-band/ramblin-man-official-chords-2644851" },
+    { title: "Sittin' On The Dock Of The Bay", artist: "Otis Redding", url: "https://tabs.ultimate-guitar.com/tab/otis-redding/sittin-on-the-dock-of-the-bay-chords-81840" },
+    { title: "Smooth", artist: "Santana", url: "https://tabs.ultimate-guitar.com/tab/santana/smooth-chords-210966" },
+    { title: "Stand By Me", artist: "Ben E. King", url: "https://tabs.ultimate-guitar.com/tab/ben-e-king/stand-by-me-chords-684694" },
+    { title: "Sweet Child O' Mine", artist: "Guns N' Roses", url: "https://tabs.ultimate-guitar.com/tab/guns-n-roses/sweet-child-o-mine-chords-176076" },
+    { title: "Wagon Wheel", artist: "Old Crow Medicine Show", url: "https://tabs.ultimate-guitar.com/tab/old-crow-medicine-show/wagon-wheel-chords-754823" },
+    { title: "Wake Me Up When September Ends", artist: "Green Day", url: "https://tabs.ultimate-guitar.com/tab/green-day/wake-me-up-when-september-ends-chords-139949" },
+    { title: "What I Got", artist: "Sublime", url: "https://tabs.ultimate-guitar.com/tab/sublime/what-i-got-chords-2553" },
+    { title: "Wonderwall", artist: "Oasis", url: "https://tabs.ultimate-guitar.com/tab/oasis/wonderwall-chords-6125" },
+    { title: "You Can Call Me Al", artist: "Paul Simon", url: "https://tabs.ultimate-guitar.com/tab/paul-simon/you-can-call-me-al-chords-84865" }
+  ];
+
+  const grid = document.getElementById('grid');
+  songs
+    .sort((a, b) => a.title.localeCompare(b.title))
+    .forEach(song => {
+      const a = document.createElement('a');
+      a.className = 'card';
+      a.href = song.url;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      a.innerHTML = `<span class="title">${song.title}</span><span class="artist">${song.artist}</span>`;
+      grid.appendChild(a);
+    });
+</script>
+
+</body>
+</html>
