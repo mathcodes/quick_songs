@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,14 +10,17 @@
     --bg:#0d0f0d;
     --panel:#171a17;
     --panel-hi:#20241f;
+    --set-panel:#1b1f2a;
+    --set-panel-hi:#242a3a;
     --line:#2a2f29;
+    --set-line:#333c52;
     --text:#f2f1ea;
     --sub:#9aa39a;
     --amber:#e0a640;
     --amber-dim:#7a5c26;
   }
 
-  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none; }
 
   html,body{
     margin:0;
@@ -25,6 +29,7 @@
     color:var(--text);
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     min-height:100%;
+    overscroll-behavior:none;
   }
 
   header{
@@ -54,6 +59,74 @@
     margin:0 auto;
   }
 
+  /* ---------- Set section ---------- */
+  .set-section{
+    margin-bottom:22px;
+  }
+
+  .set-section h2{
+    display:flex;
+    align-items:baseline;
+    gap:8px;
+    margin:0 0 8px;
+    font-size:.85rem;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--text);
+  }
+
+  .set-section h2 .hint{
+    font-size:.68rem;
+    color:var(--sub);
+    text-transform:none;
+    letter-spacing:0;
+    font-weight:400;
+  }
+
+  .set-grid{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    min-height:74px;
+    padding:10px;
+    border:2px dashed var(--set-line);
+    border-radius:12px;
+    background:rgba(36,42,58,.25);
+    transition:background .15s ease, border-color .15s ease;
+  }
+
+  .set-grid.drop-active{
+    background:rgba(224,166,64,.10);
+    border-color:var(--amber-dim);
+  }
+
+  .set-grid .placeholder{
+    margin:auto;
+    color:var(--sub);
+    font-size:.8rem;
+    padding:12px;
+    text-align:center;
+    pointer-events:none;
+  }
+
+  .set-grid.empty .placeholder{ display:block; }
+  .set-grid:not(.empty) .placeholder{ display:none; }
+
+  .set-grid .card{
+    flex:0 0 auto;
+    width:calc(33.333% - 7px);
+    background:var(--set-panel);
+    border-color:var(--set-line);
+  }
+
+  @media (orientation:landscape){
+    .set-grid .card{ width:calc(25% - 8px); }
+  }
+  @media (min-width:640px) and (min-aspect-ratio:1/1){
+    .set-grid .card{ width:calc(25% - 8px); }
+  }
+
+  /* ---------- Main grid ---------- */
   .grid{
     display:grid;
     grid-template-columns:repeat(3, 1fr);
@@ -63,58 +136,78 @@
   @media (orientation:landscape){
     .grid{ grid-template-columns:repeat(4, 1fr); }
   }
-
-  /* fallback for landscape tablets/desktop that don't fire orientation media query */
   @media (min-width:640px) and (min-aspect-ratio:1/1){
     .grid{ grid-template-columns:repeat(4, 1fr); }
   }
 
-  a.card{
+  .grid.drop-active{
+    outline:2px dashed var(--amber-dim);
+    outline-offset:6px;
+    border-radius:12px;
+  }
+
+  /* ---------- Card ---------- */
+  .card{
     display:flex;
     flex-direction:column;
     justify-content:center;
     align-items:center;
     text-align:center;
     gap:6px;
-    min-height:92px;
+    min-height:88px;
     padding:12px 8px;
     background:var(--panel);
     border:1px solid var(--line);
     border-radius:10px;
-    text-decoration:none;
     color:var(--text);
-    transition:background .12s ease, border-color .12s ease, transform .08s ease;
+    touch-action:none;
+    cursor:grab;
+    position:relative;
+    transition:background .12s ease, border-color .12s ease, opacity .12s ease;
   }
 
-  a.card:active{
-    transform:scale(.97);
-    background:var(--panel-hi);
-    border-color:var(--amber-dim);
+  .card:active{ cursor:grabbing; }
+
+  .card.dragging-source{
+    opacity:.3;
   }
 
-  @media (hover:hover){
-    a.card:hover{
-      background:var(--panel-hi);
-      border-color:var(--amber-dim);
-    }
-  }
-
-  a.card:focus-visible{
+  .card:focus-visible{
     outline:2px solid var(--amber);
     outline-offset:2px;
   }
 
+  @media (hover:hover){
+    .card:hover{
+      background:var(--panel-hi);
+      border-color:var(--amber-dim);
+    }
+    .set-grid .card:hover{
+      background:var(--set-panel-hi);
+    }
+  }
+
   .title{
-    font-size:.95rem;
+    font-size:.93rem;
     font-weight:700;
     line-height:1.2;
   }
 
   .artist{
-    font-size:.72rem;
+    font-size:.7rem;
     font-weight:400;
     color:var(--sub);
     line-height:1.2;
+  }
+
+  .drag-clone{
+    position:fixed;
+    z-index:999;
+    pointer-events:none;
+    opacity:.92;
+    transform:scale(1.04) rotate(-1deg);
+    box-shadow:0 8px 24px rgba(0,0,0,.5);
+    border-radius:10px;
   }
 
   footer{
@@ -129,17 +222,26 @@
 
 <header>
   <h1>Setlist</h1>
-  <p>32 songs &middot; tap for chords</p>
+  <p id="songCount">44 songs &middot; tap to open &middot; drag to build a set</p>
 </header>
 
 <main>
-  <div class="grid" id="grid"></div>
+  <section class="set-section">
+    <h2>Set <span id="setCount"></span> <span class="hint">drag songs up here</span></h2>
+    <div class="set-grid empty" id="setGrid">
+      <p class="placeholder">Drag songs up here to build your set</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="grid" id="grid"></div>
+  </section>
 </main>
 
-<footer>Links open Ultimate Guitar</footer>
+<footer>Links open Ultimate Guitar &middot; tap a card to open, drag to move it</footer>
 
 <script>
-  const songs = [
+  const songData = [
     { title: "Ain't No Sunshine", artist: "Bill Withers", url: "https://tabs.ultimate-guitar.com/tab/bill-withers/aint-no-sunshine-chords-468744" },
     { title: "All Of Me", artist: "John Legend", url: "https://tabs.ultimate-guitar.com/tab/john-legend/all-of-me-official-2123125" },
     { title: "Bad Moon Rising", artist: "Creedence Clearwater Revival", url: "https://tabs.ultimate-guitar.com/tab/creedence-clearwater-revival/bad-moon-rising-chords-15892" },
@@ -171,21 +273,169 @@
     { title: "Wake Me Up When September Ends", artist: "Green Day", url: "https://tabs.ultimate-guitar.com/tab/green-day/wake-me-up-when-september-ends-chords-139949" },
     { title: "What I Got", artist: "Sublime", url: "https://tabs.ultimate-guitar.com/tab/sublime/what-i-got-chords-2553" },
     { title: "Wonderwall", artist: "Oasis", url: "https://tabs.ultimate-guitar.com/tab/oasis/wonderwall-chords-6125" },
-    { title: "You Can Call Me Al", artist: "Paul Simon", url: "https://tabs.ultimate-guitar.com/tab/paul-simon/you-can-call-me-al-chords-84865" }
+    { title: "You Can Call Me Al", artist: "Paul Simon", url: "https://tabs.ultimate-guitar.com/tab/paul-simon/you-can-call-me-al-chords-84865" },
+    { title: "Waste A Moment", artist: "Kings of Leon", url: "https://tabs.ultimate-guitar.com/tab/kings-of-leon/waste-a-moment-chords-1873597" },
+    { title: "Drive (Acoustic)", artist: "Incubus", url: "https://tabs.ultimate-guitar.com/tab/incubus/drive-chords-1216375" },
+    { title: "Astrovan", artist: "Mt. Joy", url: "https://tabs.ultimate-guitar.com/tab/mt-joy/astrovan-official-chords-3683471" },
+    { title: "Your Love", artist: "The Outfield", url: "https://tabs.ultimate-guitar.com/tab/the-outfield/your-love-official-chords-2577984" },
+    { title: "Into The Night", artist: "Santana ft. Chad Kroeger", url: "https://tabs.ultimate-guitar.com/tab/santana/into-the-night-chords-870086" },
+    { title: "The Seeker", artist: "The Who", url: "https://tabs.ultimate-guitar.com/tab/the-who/the-seeker-official-chords-2938316" },
+    { title: "Better Together", artist: "Jack Johnson", url: "https://tabs.ultimate-guitar.com/tab/jack-johnson/better-together-official-chords-2217143" },
+    { title: "No Diggity", artist: "Blackstreet", url: "https://tabs.ultimate-guitar.com/tab/blackstreet/no-diggity-official-chords-2558463" },
+    { title: "1979", artist: "The Smashing Pumpkins", url: "https://tabs.ultimate-guitar.com/tab/the-smashing-pumpkins/1979-chords-355074" },
+    { title: "Gravity", artist: "John Mayer", url: "https://tabs.ultimate-guitar.com/tab/john-mayer/gravity-official-chords-2417205" },
+    { title: "Doors", artist: "Noah Kahan", url: "https://tabs.ultimate-guitar.com/tab/noah-kahan/doors-chords-5661576" },
+    { title: "3AM", artist: "Matchbox Twenty", url: "https://tabs.ultimate-guitar.com/tab/matchbox-twenty/3am-official-chords-2339587" }
   ];
 
-  const grid = document.getElementById('grid');
-  songs
+  // build stable ids + in-memory state (inSet flag). No persistence by design.
+  const songs = songData
+    .map((s, i) => ({ ...s, id: 'song-' + i }))
     .sort((a, b) => a.title.localeCompare(b.title))
-    .forEach(song => {
-      const a = document.createElement('a');
-      a.className = 'card';
-      a.href = song.url;
-      a.target = '_blank';
-      a.rel = 'noopener noreferrer';
-      a.innerHTML = `<span class="title">${song.title}</span><span class="artist">${song.artist}</span>`;
-      grid.appendChild(a);
+    .map(s => ({ ...s, inSet: false }));
+
+  const gridEl = document.getElementById('grid');
+  const setGridEl = document.getElementById('setGrid');
+  const setCountEl = document.getElementById('setCount');
+  const songCountEl = document.getElementById('songCount');
+
+  const DRAG_THRESHOLD = 10;
+
+  function renderAll(){
+    gridEl.innerHTML = '';
+    setGridEl.innerHTML = '';
+
+    const inSet = songs.filter(s => s.inSet);
+    const remaining = songs.filter(s => !s.inSet);
+
+    setGridEl.classList.toggle('empty', inSet.length === 0);
+    if (inSet.length === 0){
+      const p = document.createElement('p');
+      p.className = 'placeholder';
+      p.textContent = 'Drag songs up here to build your set';
+      setGridEl.appendChild(p);
+    } else {
+      inSet.forEach(s => setGridEl.appendChild(makeCard(s)));
+    }
+
+    remaining.forEach(s => gridEl.appendChild(makeCard(s)));
+
+    setCountEl.textContent = inSet.length ? '(' + inSet.length + ')' : '';
+    songCountEl.textContent = songs.length + ' songs \u00B7 tap to open \u00B7 drag to build a set';
+  }
+
+  function makeCard(song){
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.tabIndex = 0;
+    card.setAttribute('role', 'button');
+    card.setAttribute('aria-label', song.title + ' by ' + song.artist);
+    card.dataset.id = song.id;
+    card.innerHTML = '<span class="title">' + escapeHtml(song.title) + '</span><span class="artist">' + escapeHtml(song.artist) + '</span>';
+
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' '){
+        e.preventDefault();
+        window.open(song.url, '_blank', 'noopener,noreferrer');
+      }
     });
+
+    attachDrag(card, song);
+    return card;
+  }
+
+  function escapeHtml(str){
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  function attachDrag(card, song){
+    let startX = 0, startY = 0, moved = false, dragging = false, clone = null;
+
+    card.addEventListener('pointerdown', (e) => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      startX = e.clientX;
+      startY = e.clientY;
+      moved = false;
+      dragging = true;
+      card.setPointerCapture(e.pointerId);
+    });
+
+    card.addEventListener('pointermove', (e) => {
+      if (!dragging) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+
+      if (!moved && Math.hypot(dx, dy) > DRAG_THRESHOLD){
+        moved = true;
+        card.classList.add('dragging-source');
+        const rect = card.getBoundingClientRect();
+        clone = card.cloneNode(true);
+        clone.classList.add('drag-clone');
+        clone.style.width = rect.width + 'px';
+        clone.style.left = rect.left + 'px';
+        clone.style.top = rect.top + 'px';
+        document.body.appendChild(clone);
+      }
+
+      if (moved && clone){
+        const rect = clone.getBoundingClientRect();
+        clone.style.left = (e.clientX - rect.width / 2) + 'px';
+        clone.style.top = (e.clientY - rect.height / 2) + 'px';
+        updateDropHighlight(e.clientX, e.clientY);
+      }
+    });
+
+    card.addEventListener('pointerup', (e) => {
+      dragging = false;
+      if (moved){
+        const target = resolveDropZone(e.clientX, e.clientY);
+        if (target === 'set' && !song.inSet){
+          song.inSet = true;
+          renderAll();
+        } else if (target === 'grid' && song.inSet){
+          song.inSet = false;
+          renderAll();
+        }
+        if (clone){ clone.remove(); clone = null; }
+        card.classList.remove('dragging-source');
+        clearDropHighlight();
+      } else {
+        window.open(song.url, '_blank', 'noopener,noreferrer');
+      }
+      moved = false;
+    });
+
+    card.addEventListener('pointercancel', () => {
+      dragging = false;
+      moved = false;
+      if (clone){ clone.remove(); clone = null; }
+      card.classList.remove('dragging-source');
+      clearDropHighlight();
+    });
+  }
+
+  function resolveDropZone(x, y){
+    const el = document.elementFromPoint(x, y);
+    if (!el) return null;
+    if (el.closest('#setGrid')) return 'set';
+    if (el.closest('#grid')) return 'grid';
+    return null;
+  }
+
+  function updateDropHighlight(x, y){
+    const zone = resolveDropZone(x, y);
+    setGridEl.classList.toggle('drop-active', zone === 'set');
+    gridEl.classList.toggle('drop-active', zone === 'grid');
+  }
+
+  function clearDropHighlight(){
+    setGridEl.classList.remove('drop-active');
+    gridEl.classList.remove('drop-active');
+  }
+
+  renderAll();
 </script>
 
 </body>
